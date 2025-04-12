@@ -86,6 +86,12 @@ class FeedbackLinearizationController(Node):
 
         v, w = U
 
+        # Limitar las velocidades
+        max_linear_speed = 0.5  # Velocidad lineal máxima (m/s)
+        max_angular_speed = 1.0  # Velocidad angular máxima (rad/s)
+        v = np.clip(v, -max_linear_speed, max_linear_speed)
+        w = np.clip(w, -max_angular_speed, max_angular_speed)
+
         # Publicar en cmd_vel
         twist = Twist()
         twist.linear.x = float(v)
