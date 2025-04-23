@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'linearization = smart_rover.feedback_linearization_node:main',
+            'circular = smart_rover.circular_trajectory:main',
         ],
     },
 )
