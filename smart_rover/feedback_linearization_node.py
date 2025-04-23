@@ -11,14 +11,14 @@ class FeedbackLinearizationController(Node):
 
         # Parámetros del robot
         self.h = 0.5
-        k = 3
-        self.K = np.diag([k, k])
+        k1, k2 = (0.4, 0.6)
+        self.K = np.array([[k1, 0], [0, k2]])
 
         # Estado inicial
         self.q = np.array([0.0, 0.0, 0.0])  # x, y, theta
 
         # Tiempo de integración
-        self.dt = 0.1
+        self.dt = 0.01
 
         # Subscripción a la posición deseada
         self.goal_sub = self.create_subscription(
@@ -63,6 +63,8 @@ class FeedbackLinearizationController(Node):
         cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
         theta = math.atan2(siny_cosp, cosy_cosp)
 
+        self.get_logger().info(f"ODOM: x={x:.2f}, y={y:.2f}, theta={theta:.2f}")
+
         # Actualizar el estado del robot
         self.q = np.array([x, y, theta])
 
@@ -70,6 +72,8 @@ class FeedbackLinearizationController(Node):
         """Actualizar el control y publicar comandos de velocidad."""
         x, y, theta = self.q
         e = np.array([x, y]) - self.qd
+        self.get_logger().info(f"Distancia al objetivo: {np.linalg.norm(e):.2f}")
+
 
         c, s = np.cos(theta), np.sin(theta)
         D = np.array([
@@ -81,16 +85,27 @@ class FeedbackLinearizationController(Node):
             # Resolver para v y w
             U = np.linalg.solve(D, -self.K @ e + self.qd_dot)
         except np.linalg.LinAlgError:
-            self.get_logger().warn("Singular matrix en el cálculo del control. Saltando esta actualización.")
+            self.get_logger().warn(f"Singularidad con theta={theta:.2f}, e={e}")
             return
 
         v, w = U
 
+        # Frenado progresivo si está cerca del objetivo
+        #distance = np.linalg.norm(e)
+        if np.linalg.norm(e) < 0.1:
+            v = 0.0
+            w = 0.0
+            self.get_logger().info("Objetivo alcanzado.")
+        #if distance < 0.2:
+        #    v *= distance / 0.2
+
         # Limitar las velocidades
-        max_linear_speed = 0.5  # Velocidad lineal máxima (m/s)
-        max_angular_speed = 1.0  # Velocidad angular máxima (rad/s)
-        v = np.clip(v, -max_linear_speed, max_linear_speed)
-        w = np.clip(w, -max_angular_speed, max_angular_speed)
+        #max_linear_speed = 0.2  # o incluso 0.1 para empezar
+        #max_angular_speed = 0.5
+        #v = np.clip(v, -max_linear_speed, max_linear_speed)
+        #w = np.clip(w, -max_angular_speed, max_angular_speed)
+
+        self.get_logger().info(f"CMD: v={v:.2f}, w={w:.2f}")
 
         # Publicar en cmd_vel
         twist = Twist()
