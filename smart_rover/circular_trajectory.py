@@ -68,7 +68,7 @@ class CircularTrajectoryPublisher(Node):
         cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
         theta = math.atan2(siny_cosp, cosy_cosp)
 
-        self.get_logger().info(f"ODOM: x={x:.2f}, y={y:.2f}, theta={theta:.2f}")
+        self.get_logger().debug(f"ODOM: x={x:.2f}, y={y:.2f}, theta={theta:.2f}")
 
         # Actualizar el estado del robot
         self.q = np.array([x, y, theta])
