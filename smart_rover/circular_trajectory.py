@@ -21,8 +21,8 @@ class CircularTrajectoryPublisher(Node):
         self.center_x = 0.0
         self.center_y = 0.0
         self.center_initialized = False  
-        self.period = 20.0  # Tiempo para completar una vuelta (segundos)
-        self.timer_period = 2.0  # Publicar cada 2 segundos
+        self.period = 40 # Tiempo para completar una vuelta (segundos)
+        self.timer_period = 5.0  # Publicar cada 2 segundos
         self.t = 0.0
         self.timer = self.create_timer(self.timer_period, self.publish_next_point)
 
