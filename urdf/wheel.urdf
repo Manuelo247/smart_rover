@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<robot name="my_robot">
+
+    <link name="wheel_base_footprint"/>
+
+    <link name="wheel_base_link">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0.0"/>
+            <geometry>
+                <cylinder radius="0.1" length="0.2"/>
+            </geometry>
+            <material name="blue">
+                <color rgba="0.0 0.5 1.0 0.75" />
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_joint" type="continuous">
+        <origin xyz="0.0 0.0 0.1" rpy="1.57079 0.0 0.0"/>
+        <parent link="wheel_base_footprint"/>
+        <child link="wheel_base_link"/>
+        <axis xyz="0.0 0.0 1.0"/>
+    </joint>
+</robot>

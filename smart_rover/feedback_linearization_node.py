@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Point, Twist
 from nav_msgs.msg import Odometry
+from visualization_msgs.msg import Marker  # Agrega esta importación
 import numpy as np
 import math
 
@@ -39,17 +40,47 @@ class FeedbackLinearizationController(Node):
         # Publicador de velocidad
         self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
 
+        # Publicador para visualizar el objetivo en RViz
+        self.marker_pub = self.create_publisher(Marker, '/visualization_marker', 10)
+
         # Temporizador para actualización periódica
         self.timer = self.create_timer(self.dt, self.update)
 
         # Objetivo actual
         self.qd = np.array([self.q[0], self.q[1]])
-        self.qd_dot = np.array([0, -0])  # velocidad deseada constante
+        self.qd_prev = np.copy(self.qd)  # Guarda la posición deseada anterior
+        self.qd_dot = np.array([0.0, 0.0])  # velocidad deseada inicial
+
+        self.last_log_time = self.get_clock().now()
+        self.log_interval = rclpy.duration.Duration(seconds=0.5)
 
     def goal_callback(self, msg: Point):
         """Callback para actualizar la posición deseada."""
+        self.qd_prev = np.copy(self.qd)  # Guarda la posición deseada anterior antes de actualizar
         self.qd = np.array([msg.x, msg.y])
         self.get_logger().info(f"Nueva posición deseada: x={msg.x:.2f}, y={msg.y:.2f}")
+        self.publish_goal_marker(msg.x, msg.y)
+
+    def publish_goal_marker(self, x, y):
+        marker = Marker()
+        marker.header.frame_id = "odom"  # Asegúrate que coincida con el frame de RViz
+        marker.header.stamp = self.get_clock().now().to_msg()
+        marker.ns = "goal"
+        marker.id = 0
+        marker.type = Marker.CYLINDER
+        marker.action = Marker.ADD
+        marker.pose.position.x = float(x)
+        marker.pose.position.y = float(y)
+        marker.pose.position.z = 0.0
+        marker.pose.orientation.w = 1.0
+        marker.scale.x = 0.10
+        marker.scale.y = 0.10
+        marker.scale.z = 0.01
+        marker.color.r = 1.0
+        marker.color.g = 0.0
+        marker.color.b = 0.0
+        marker.color.a = 1.0
+        self.marker_pub.publish(marker)
 
     def odom_callback(self, msg: Odometry):
         """Callback para actualizar el estado del robot usando la odometría."""
@@ -63,17 +94,25 @@ class FeedbackLinearizationController(Node):
         cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
         theta = math.atan2(siny_cosp, cosy_cosp)
 
-        self.get_logger().info(f"ODOM: x={x:.2f}, y={y:.2f}, theta={theta:.2f}")
+        self.get_logger().debug(f"ODOM: x={x:.2f}, y={y:.2f}, theta={theta:.2f}")
 
         # Actualizar el estado del robot
         self.q = np.array([x, y, theta])
 
     def update(self):
         """Actualizar el control y publicar comandos de velocidad."""
+        # Calcular la derivada numérica de la trayectoria deseada
+        self.qd_dot = (self.qd - self.qd_prev) / self.dt
+        self.qd_prev = np.copy(self.qd)
+
         x, y, theta = self.q
         e = np.array([x, y]) - self.qd
-        self.get_logger().info(f"Distancia al objetivo: {np.linalg.norm(e):.2f}")
 
+        # Publicar la distancia al objetivo solo cada 0.5 segundos
+        now = self.get_clock().now()
+        if (now - self.last_log_time) > self.log_interval:
+            self.get_logger().info(f"Distancia al objetivo: {np.linalg.norm(e):.2f}")
+            self.last_log_time = now
 
         c, s = np.cos(theta), np.sin(theta)
         D = np.array([
@@ -105,7 +144,7 @@ class FeedbackLinearizationController(Node):
         #v = np.clip(v, -max_linear_speed, max_linear_speed)
         #w = np.clip(w, -max_angular_speed, max_angular_speed)
 
-        self.get_logger().info(f"CMD: v={v:.2f}, w={w:.2f}")
+        self.get_logger().debug(f"CMD: v={v:.2f}, w={w:.2f}")
 
         # Publicar en cmd_vel
         twist = Twist()

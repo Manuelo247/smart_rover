@@ -1,4 +1,6 @@
 from setuptools import setup
+from glob import glob
+import os
 
 package_name = 'smart_rover'
 
@@ -10,6 +12,10 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'meshes'), glob('meshes/*')),
+        (os.path.join('share', package_name, 'urdf'), glob('urdf/*')),
+        (os.path.join('share', package_name, 'rviz'), glob('rviz/*')),
+        (os.path.join('share', package_name, 'launch'), glob('launch/*'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -22,6 +28,8 @@ setup(
         'console_scripts': [
             'linearization = smart_rover.feedback_linearization_node:main',
             'circular = smart_rover.circular_trajectory:main',
+            'rover_simulator = smart_rover.odom_simulator:main',
+            'rdk_x3_robot_static = smart_rover.state_publisher_static:main',
         ],
     },
 )
