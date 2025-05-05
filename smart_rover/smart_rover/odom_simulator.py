@@ -39,6 +39,7 @@ class OdomSimulator(Node):
         self.w = msg.angular.z
 
     def update(self):
+        self.get_logger().info(f"Simulacion de odometria inicializada")
         now = self.get_clock().now()
         dt = (now - self.last_time).nanoseconds * 1e-9
         self.last_time = now

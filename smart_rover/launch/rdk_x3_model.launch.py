@@ -14,7 +14,7 @@ def generate_launch_description():
     rviz_config_file = os.path.join(
         get_package_share_directory('smart_rover'),
         'rviz',
-        'rdk_x3_robot.rviz'
+        'rdk_conf.rviz'
     )
 
     # Read URDF
@@ -40,13 +40,13 @@ def generate_launch_description():
             executable='static_transform_publisher',
             name='static_transform_publisher',
             output='screen',
-            arguments=['0', '0', '0', '0', '0', '0', 'map', 'base_link']
+            arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
         ),
-        # Node(
-        #     package='rviz2',
-        #     executable='rviz2',
-        #     name='rviz2',
-        #     output='screen',
-        #     arguments=['-d', rviz_config_file]
-        # ),
+        Node(
+            package='rviz2',
+            executable='rviz2',
+            name='rviz2',
+            output='screen',
+            arguments=['-d', rviz_config_file]
+        ),
     ])
