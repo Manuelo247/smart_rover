@@ -39,7 +39,7 @@ def bresenham(x0, y0, x1, y1):
     cells.append((x1, y1))
     return cells
 
-class OccupancyGrid:
+class OccupancyGridMap:
     def __init__(self, width, height, resolution, origin_x=0.0, origin_y=0.0,
                  p0=0.5, p_occ=0.7, p_free=0.3, lo_max=20.0, lo_min=-20.0):
         """
