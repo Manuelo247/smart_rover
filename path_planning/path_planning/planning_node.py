@@ -6,6 +6,8 @@ import numpy as np
 import yaml
 import cv2
 import os
+import math
+from scipy.ndimage import distance_transform_edt
 
 from path_planning.a_star import a_star 
 from path_planning.theta_star import theta_star
@@ -35,6 +37,21 @@ def inflate_obstacles(grid, robot_radius_cells):
     inflated = cv2.dilate((grid > 0).astype(np.uint8), kernel)
     return np.where(inflated > 0, 100, 0)
 
+def cost(d, alpha=10.0, beta=2.0):
+    return 1 + alpha * math.exp(-beta * d)
+
+def generate_costmap(grid, alpha=10.0, beta=2.0):
+    # grid: 0 = libre, >0 = ocupado
+    obstacle_mask = (grid > 0)
+    # Distancia en celdas a obstáculo más cercano
+    dist = distance_transform_edt(~obstacle_mask)
+    # Aplica la función de coste a cada celda
+    vectorized_cost = np.vectorize(cost)
+    costmap = vectorized_cost(dist, alpha, beta)
+    # Opcional: pon coste muy alto en obstáculos
+    costmap[obstacle_mask] = np.inf
+    return costmap
+
 class AStarPlannerNode(Node):
     def __init__(self):
         super().__init__('planner')
@@ -46,6 +63,7 @@ class AStarPlannerNode(Node):
         robot_radius_m = 0.25  # Cambia esto según el radio de tu robot (en metros)
         robot_radius_cells = int(robot_radius_m / self.resolution)
         self.grid = inflate_obstacles(self.grid, robot_radius_cells)
+        self.costmap = generate_costmap(self.grid)
         self.goal_sub = self.create_subscription(PoseStamped, 'goal_pose', self.goal_callback, 10)
         self.path_pub = self.create_publisher(Path, 'planned_path', 10)
         self.current_pose = None
@@ -70,9 +88,18 @@ class AStarPlannerNode(Node):
             msg.pose.position.y,
             self.origin, self.resolution
         )
+        # NUEVO: Verifica si el objetivo está dentro del mapa
+        if (goal[0] < 0 or goal[0] >= self.grid.shape[0] or
+            goal[1] < 0 or goal[1] >= self.grid.shape[1]):
+            self.get_logger().warn('El objetivo está FUERA del mapa. No se puede planificar.')
+            return
+        # Verifica si el objetivo está en un obstáculo
+        if (self.grid[goal] != 0) or np.isinf(self.costmap[goal]):
+            self.get_logger().warn('El objetivo está en una zona prohibida: dentro de una pared o demasiado cerca.')
+            return
         # Elige el algoritmo aquí:
         # path_idx = a_star(start, goal, self.grid)
-        path_idx = theta_star(start, goal, self.grid)
+        path_idx = theta_star(start, goal, self.grid, self.costmap)
         if path_idx is None:
             self.get_logger().warn('No se encontró ruta')
             return

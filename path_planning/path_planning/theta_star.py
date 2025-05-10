@@ -40,7 +40,7 @@ def line_of_sight(grid, p0, p1):
             error += dx
     return True
 
-def theta_star(start, goal, grid):
+def theta_star(start, goal, grid, costmap):
     open_list = []
     closed_set = set()
     start_node = Node(start, 0, heuristic(start, goal), parent=None)
@@ -63,10 +63,11 @@ def theta_star(start, goal, grid):
 
                 if current.parent and line_of_sight(grid, current.parent.position, neighbor_pos):
                     parent = current.parent
-                    g = parent.g + heuristic(parent.position, neighbor_pos)
+                    # Suma el coste de la celda destino
+                    g = parent.g + costmap[neighbor_pos]
                 else:
                     parent = current
-                    g = current.g + heuristic(current.position, neighbor_pos)
+                    g = current.g + costmap[neighbor_pos]
 
                 if neighbor_pos not in nodes or g < nodes[neighbor_pos].g:
                     h = heuristic(neighbor_pos, goal)
