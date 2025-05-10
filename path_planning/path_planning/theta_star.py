@@ -1,22 +1,31 @@
 import numpy as np
 import heapq
 
+# =========================
+# CLASES Y FUNCIONES BÁSICAS
+# =========================
+
 class Node:
+    """Nodo para el algoritmo Theta*"""
     def __init__(self, position, g=0, h=0, parent=None):
-        self.position = position
-        self.g = g
-        self.h = h
-        self.f = g + h
-        self.parent = parent
+        self.position = position  # (fila, columna)
+        self.g = g                # Coste acumulado
+        self.h = h                # Heurística al objetivo
+        self.f = g + h            # Coste total estimado
+        self.parent = parent      # Nodo padre
 
     def __lt__(self, other):
         return self.f < other.f
 
 def heuristic(a, b):
+    """Distancia euclidiana entre dos puntos"""
     return np.linalg.norm(np.array(a) - np.array(b))
 
 def line_of_sight(grid, p0, p1):
-    """Bresenham's line algorithm to check if path is free."""
+    """
+    Algoritmo de Bresenham para comprobar si hay línea de visión libre entre dos puntos.
+    Devuelve True si no hay obstáculos en la línea recta entre p0 y p1.
+    """
     x0, y0 = p0
     x1, y1 = p1
     dx = abs(x1 - x0)
@@ -40,7 +49,50 @@ def line_of_sight(grid, p0, p1):
             error += dx
     return True
 
+def bresenham(x0, y0, x1, y1):
+    """Generador de puntos entre (x0, y0) y (x1, y1) usando el algoritmo de Bresenham."""
+    dx = abs(x1 - x0)
+    dy = abs(y1 - y0)
+    x, y = x0, y0
+    sx = 1 if x1 > x0 else -1
+    sy = 1 if y1 > y0 else -1
+    if dx > dy:
+        err = dx / 2.0
+        while x != x1:
+            yield (x, y)
+            err -= dy
+            if err < 0:
+                y += sy
+                err += dx
+            x += sx
+        yield (x, y)
+    else:
+        err = dy / 2.0
+        while y != y1:
+            yield (x, y)
+            err -= dx
+            if err < 0:
+                x += sx
+                err += dy
+            y += sy
+        yield (x, y)
+
+def line_cost(costmap, p0, p1):
+    """Suma el coste de todas las celdas a lo largo de la línea de visión entre p0 y p1."""
+    x0, y0 = p0
+    x1, y1 = p1
+    points = list(bresenham(x0, y0, x1, y1))
+    return sum(costmap[x, y] for x, y in points)
+
+# =========================
+# ALGORITMO THETA*
+# =========================
+
 def theta_star(start, goal, grid, costmap):
+    """
+    Algoritmo Theta* para planificación de rutas con costmap.
+    Minimiza el coste acumulado, considerando la cercanía a obstáculos.
+    """
     open_list = []
     closed_set = set()
     start_node = Node(start, 0, heuristic(start, goal), parent=None)
@@ -53,6 +105,7 @@ def theta_star(start, goal, grid, costmap):
             return reconstruct_path(current)
         closed_set.add(current.position)
 
+        # Movimientos en 8 direcciones
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1),
                        (-1, -1), (-1, 1), (1, -1), (1, 1)]:
             neighbor_pos = (current.position[0] + dx, current.position[1] + dy)
@@ -61,10 +114,10 @@ def theta_star(start, goal, grid, costmap):
                 grid[neighbor_pos] == 0 and
                 neighbor_pos not in closed_set):
 
+                # Línea de visión desde el padre
                 if current.parent and line_of_sight(grid, current.parent.position, neighbor_pos):
                     parent = current.parent
-                    # Suma el coste de la celda destino
-                    g = parent.g + costmap[neighbor_pos]
+                    g = parent.g + line_cost(costmap, parent.position, neighbor_pos)
                 else:
                     parent = current
                     g = current.g + costmap[neighbor_pos]
@@ -77,6 +130,7 @@ def theta_star(start, goal, grid, costmap):
     return None
 
 def reconstruct_path(node):
+    """Reconstruye el camino desde el nodo objetivo hasta el inicio"""
     path = []
     while node:
         path.append(node.position)
