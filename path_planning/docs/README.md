@@ -21,7 +21,7 @@
 ---
 
 ## Testing
-ros2 run path_planning a_star_node
+ros2 run path_planning planning
 
 ros2 launch path_planning map_server.launch.py
 

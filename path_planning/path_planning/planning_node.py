@@ -81,11 +81,11 @@ class AStarPlannerNode(Node):
         self.grid = None
         self.resolution = None
         self.origin = None
-        self.costmap = None
+        # self.costmap = None  
 
         # --- Subscripciones y publicaciones ---
         self.odom_sub = self.create_subscription(Odometry, 'odom', self.odom_callback, 10)
-        self.goal_sub = self.create_subscription(PoseStamped, 'goal_pose', self.goal_callback, 10)
+        self.goal_sub = self.create_subscription(PoseStamped, 'global_goal_pose', self.goal_callback, 10)
         self.map_sub = self.create_subscription(OccupancyGrid, 'map', self.map_callback, 1)
         self.path_pub = self.create_publisher(Path, 'planned_path', 10)
 
@@ -105,7 +105,7 @@ class AStarPlannerNode(Node):
         self.origin = [msg.info.origin.position.x, msg.info.origin.position.y]
         robot_radius_cells = math.ceil(ROBOT_RADIUS_M / self.resolution)
         self.grid = inflate_obstacles(self.grid, robot_radius_cells)
-        self.costmap = generate_costmap(self.grid)
+        # self.costmap = generate_costmap(self.grid)  
         self.get_logger().info('Mapa recibido y procesado.')
 
     def odom_callback(self, msg):
@@ -118,7 +118,7 @@ class AStarPlannerNode(Node):
         if self.current_pose is None:
             self.get_logger().warn('Esperando posición actual...')
             return
-        if self.grid is None or self.costmap is None:
+        if self.grid is None:  # or self.costmap is None:  
             self.get_logger().warn('Esperando mapa...')
             return
 
@@ -139,13 +139,13 @@ class AStarPlannerNode(Node):
             goal[1] < 0 or goal[1] >= self.grid.shape[1]):
             self.get_logger().warn('El objetivo está FUERA del mapa. No se puede planificar.')
             return
-        if (self.grid[goal] != 0) or np.isinf(self.costmap[goal]):
+        if (self.grid[goal] != 0):  # or np.isinf(self.costmap[goal]):  
             self.get_logger().warn('El objetivo está en una zona prohibida: dentro de una pared o demasiado cerca según el tamaño del robot.')
             return
 
         # --- Planificación (elige el algoritmo aquí) ---
         # path_idx = a_star(start, goal, self.grid)
-        path_idx = theta_star(start, goal, self.grid, self.costmap)
+        path_idx = theta_star(start, goal, self.grid, None)  # <-- costmap ya no se usa
 
         if path_idx is None:
             self.get_logger().warn('No se encontró ruta')

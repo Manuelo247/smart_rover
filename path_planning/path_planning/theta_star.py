@@ -77,21 +77,21 @@ def bresenham(x0, y0, x1, y1):
             y += sy
         yield (x, y)
 
-def line_cost(costmap, p0, p1):
-    """Suma el coste de todas las celdas a lo largo de la línea de visión entre p0 y p1."""
-    x0, y0 = p0
-    x1, y1 = p1
-    points = list(bresenham(x0, y0, x1, y1))
-    return sum(costmap[x, y] for x, y in points)
+# def line_cost(costmap, p0, p1):
+#     """Suma el coste de todas las celdas a lo largo de la línea de visión entre p0 y p1."""
+#     x0, y0 = p0
+#     x1, y1 = p1
+#     points = list(bresenham(x0, y0, x1, y1))
+#     return sum(costmap[x, y] for x, y in points)
 
 # =========================
 # ALGORITMO THETA*
 # =========================
 
-def theta_star(start, goal, grid, costmap):
+def theta_star(start, goal, grid, costmap=None):
     """
-    Algoritmo Theta* para planificación de rutas con costmap.
-    Minimiza el coste acumulado, considerando la cercanía a obstáculos.
+    Algoritmo Theta* para planificación de rutas.
+    Minimiza el coste acumulado, sin ponderar por cercanía a obstáculos.
     """
     open_list = []
     closed_set = set()
@@ -117,10 +117,12 @@ def theta_star(start, goal, grid, costmap):
                 # Línea de visión desde el padre
                 if current.parent and line_of_sight(grid, current.parent.position, neighbor_pos):
                     parent = current.parent
-                    g = parent.g + line_cost(costmap, parent.position, neighbor_pos)
+                    # g = parent.g + line_cost(costmap, parent.position, neighbor_pos)
+                    g = parent.g + heuristic(parent.position, neighbor_pos)
                 else:
                     parent = current
-                    g = current.g + costmap[neighbor_pos]
+                    # g = current.g + costmap[neighbor_pos]
+                    g = current.g + heuristic(current.position, neighbor_pos)
 
                 if neighbor_pos not in nodes or g < nodes[neighbor_pos].g:
                     h = heuristic(neighbor_pos, goal)
