@@ -17,15 +17,11 @@ class GridMappingNode(Node):
         # Parámetros del mapa
         width = 400
         height = 400
-<<<<<<< HEAD
-        resolution = 0.1
-=======
         resolution = 0.05
->>>>>>> f057b10fe58973ad6050474130d37f36f99d8ce8
         origin = (-10.0, -10.0)
-        self.map = OccupancyGridMap(width, height, resolution,
-                                    origin_x=origin[0], origin_y=origin[1])
-        self.get_logger().info(f'Mapa creado: {width}x{height} celdas, resolución {resolution}, origen {origin}')
+        origin_x, origin_y = origin
+        self.map = OccupancyGridMap(width, height, resolution, origin_x=origin[0], origin_y=origin[1])
+        self.get_logger().info(f'Mapa creado: {width}x{height} celdas, resolución {resolution}, origen: ({origin_x}, {origin_y})')
 
         # Suscriptores
         self.create_subscription(LaserScan, 'scan', self.lidar_callback, 10)
@@ -46,23 +42,41 @@ class GridMappingNode(Node):
         self.latest_scan = msg
         self.get_logger().debug('Mensaje de LiDAR recibido.')
 
+    #def get_yaw_from_quaternion(q):
+    #    siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
+    #    cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
+    #    return math.atan2(siny_cosp, cosy_cosp)
+
     def odom_callback(self, msg: Odometry):
+        def get_yaw_from_quaternion(q):
+            siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
+            cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
+            return math.atan2(siny_cosp, cosy_cosp)
+
         pos = msg.pose.pose.position
         ori = msg.pose.pose.orientation
-        yaw = 2 * math.atan2(ori.z, ori.w)
+        #yaw = get_yaw_from_quaternion(ori)
+        yaw = get_yaw_from_quaternion(ori)
         self.latest_odom = (pos.x, pos.y, yaw)
-        self.get_logger().debug(f'Odometría recibida: x={pos.x:.2f}, y={pos.y:.2f}, yaw={yaw:.2f}')
 
     def timer_callback(self):
         if self.latest_scan is None or self.latest_odom is None:
+            # Parámetros del mapa
+            width = 400
+            height = 400
+            resolution = 0.05
+            origin = (-10.0, -10.0)
+            origin_x, origin_y = origin
+            self.map = OccupancyGridMap(width, height, resolution, origin_x=origin[0], origin_y=origin[1])
+            self.get_logger().info(f'Mapa creado: {width}x{height} celdas, resolución {resolution}, origen: ({origin_x}, {origin_y})')
+
+
             self.get_logger().warn('Esperando datos de LiDAR y odometría...')
             return
 
         self.get_logger().info('Actualizando mapa con nueva lectura.')
         ranges = np.array(self.latest_scan.ranges)
-        angles = np.linspace(self.latest_scan.angle_min,
-                             self.latest_scan.angle_max,
-                             len(ranges))
+        angles = np.linspace(self.latest_scan.angle_min, self.latest_scan.angle_max, len(ranges))
 
         self.map.update(ranges, angles, self.latest_odom)
 
@@ -74,7 +88,7 @@ class GridMappingNode(Node):
         msg = OccupancyGrid()
         msg.header = Header()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = "base_link"
+        msg.header.frame_id = "map"
         msg.info = MapMetaData()
         msg.info.resolution = self.map.res
         msg.info.width = self.map.width

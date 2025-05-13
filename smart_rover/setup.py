@@ -29,6 +29,7 @@ setup(
             'linearization = smart_rover.feedback_linearization_node:main',
             'circular = smart_rover.circular_trajectory:main',
             'rover_simulator = smart_rover.odom_simulator:main',
+            'angle = smart_rover.angle_controller:main',
             'rdk_x3_robot_static = smart_rover.state_publisher_static:main',
             'path_follower = smart_rover.path_follower:main',
         ],
