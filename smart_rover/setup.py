@@ -30,6 +30,7 @@ setup(
             'circular = smart_rover.circular_trajectory:main',
             'rover_simulator = smart_rover.odom_simulator:main',
             'rdk_x3_robot_static = smart_rover.state_publisher_static:main',
+            'path_follower = smart_rover.path_follower:main',
         ],
     },
 )

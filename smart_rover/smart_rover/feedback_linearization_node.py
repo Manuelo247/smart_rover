@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Point, Twist
+from geometry_msgs.msg import Point, Twist, PoseStamped
 from nav_msgs.msg import Odometry
 from visualization_msgs.msg import Marker  # Agrega esta importación
 import numpy as np
@@ -21,10 +21,10 @@ class FeedbackLinearizationController(Node):
         # Tiempo de integración
         self.dt = 0.01
 
-        # Subscripción a la posición deseada
+        # Subscripción a la posición deseada (ahora PoseStamped)
         self.goal_sub = self.create_subscription(
-            Point,
-            '/goal_position',
+            PoseStamped,
+            '/local_goal_pose',
             self.goal_callback,
             10
         )
@@ -54,12 +54,12 @@ class FeedbackLinearizationController(Node):
         self.last_log_time = self.get_clock().now()
         self.log_interval = rclpy.duration.Duration(seconds=0.5)
 
-    def goal_callback(self, msg: Point):
+    def goal_callback(self, msg: PoseStamped):
         """Callback para actualizar la posición deseada."""
         self.qd_prev = np.copy(self.qd)  # Guarda la posición deseada anterior antes de actualizar
-        self.qd = np.array([msg.x, msg.y])
-        self.get_logger().info(f"Nueva posición deseada: x={msg.x:.2f}, y={msg.y:.2f}")
-        self.publish_goal_marker(msg.x, msg.y)
+        self.qd = np.array([msg.pose.position.x, msg.pose.position.y])
+        self.get_logger().info(f"Nueva posición deseada: x={msg.pose.position.x:.2f}, y={msg.pose.position.y:.2f}")
+        self.publish_goal_marker(msg.pose.position.x, msg.pose.position.y)
 
     def publish_goal_marker(self, x, y):
         marker = Marker()
