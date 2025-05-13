@@ -32,9 +32,9 @@ class YawController(Node):
         self.dt            = 0.05  # 20 Hz
 
         # Subscripciones y publicador
-        self.create_subscription(Float64,   'goal_yaw', self.goal_callback, 10)
-        self.create_subscription(Odometry,  'odom',     self.odom_callback, 10)
-        self.cmd_pub = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.create_subscription(Float64, '/goal_yaw', self.goal_callback, 10)
+        self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
+        self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
 
         # Timer
         self.create_timer(self.dt, self.update)
