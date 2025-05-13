@@ -9,8 +9,6 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped
-from nav_msgs.msg import Odometry
-from nav_msgs.msg import OccupancyGrid
 
 from path_planning.a_star import a_star
 from path_planning.theta_star import theta_star
@@ -77,49 +75,29 @@ class AStarPlannerNode(Node):
     def __init__(self):
         super().__init__('planner')
 
-        # --- Inicialización de variables de mapa ---
-        self.grid = None
-        self.resolution = None
-        self.origin = None
-        self.costmap = None
+        # --- Inicialización de mapa y costmap ---
+        pkg_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        yaml_path = os.path.join(pkg_path, 'resource', MAP_FILENAME)
+        self.grid, self.resolution, self.origin = load_map(yaml_path)
 
-        # --- Subscripciones y publicaciones ---
-        self.odom_sub = self.create_subscription(Odometry, 'odom', self.odom_callback, 10)
-        self.goal_sub = self.create_subscription(PoseStamped, 'goal_pose', self.goal_callback, 10)
-        self.map_sub = self.create_subscription(OccupancyGrid, 'map', self.map_callback, 1)
-        self.path_pub = self.create_publisher(Path, 'planned_path', 10)
-
-        self.current_pose = None
-        self.get_logger().info('A* / Theta* planner node listo (esperando mapa).')
-
-    def map_callback(self, msg):
-        # Procesa el OccupancyGrid para obtener grid, resolución y origen
-        width = msg.info.width
-        height = msg.info.height
-        data = np.array(msg.data, dtype=np.int8).reshape((height, width))
-        # 0: libre, 100: ocupado, -1: desconocido
-        grid = np.where(data == 0, 0, 100)
-        grid[data == -1] = 100  # Considera desconocido como ocupado
-        self.grid = grid
-        self.resolution = msg.info.resolution
-        self.origin = [msg.info.origin.position.x, msg.info.origin.position.y]
         robot_radius_cells = math.ceil(ROBOT_RADIUS_M / self.resolution)
         self.grid = inflate_obstacles(self.grid, robot_radius_cells)
         self.costmap = generate_costmap(self.grid)
-        self.get_logger().info('Mapa recibido y procesado.')
 
-    def odom_callback(self, msg):
-        pose_msg = PoseStamped()
-        pose_msg.header = msg.header
-        pose_msg.pose = msg.pose.pose
-        self.current_pose = pose_msg
+        # --- Subscripciones y publicaciones ---
+        self.current_pose = None
+        self.pose_sub = self.create_subscription(PoseStamped, 'current_pose', self.pose_callback, 10)
+        self.goal_sub = self.create_subscription(PoseStamped, 'goal_pose', self.goal_callback, 10)
+        self.path_pub = self.create_publisher(Path, 'planned_path', 10)
+
+        self.get_logger().info('A* / Theta* planner node listo.')
+
+    def pose_callback(self, msg):
+        self.current_pose = msg
 
     def goal_callback(self, msg):
         if self.current_pose is None:
             self.get_logger().warn('Esperando posición actual...')
-            return
-        if self.grid is None or self.costmap is None:
-            self.get_logger().warn('Esperando mapa...')
             return
 
         # --- Conversión de coordenadas ---

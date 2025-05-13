@@ -19,3 +19,20 @@
 7. **Publica la ruta** como `nav_msgs/Path` para visualización o control.
 
 ---
+
+## Testing
+ros2 run path_planning a_star_node
+
+ros2 launch path_planning map_server.launch.py
+
+ros2 topic pub /current_pose geometry_msgs/msg/PoseStamped '
+{
+  header: {
+    stamp: {sec: 0, nanosec: 0},
+    frame_id: "map"
+  },
+  pose: {
+    position: {x: -1.0, y: -1.0, z: 0.0},
+    orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+  }
+}' --once
