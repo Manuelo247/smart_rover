@@ -63,7 +63,7 @@ class FeedbackLinearizationController(Node):
 
     def publish_goal_marker(self, x, y):
         marker = Marker()
-        marker.header.frame_id = "odom"  # Asegúrate que coincida con el frame de RViz
+        marker.header.frame_id = "map"  # Asegúrate que coincida con el frame de RViz
         marker.header.stamp = self.get_clock().now().to_msg()
         marker.ns = "goal"
         marker.id = 0
