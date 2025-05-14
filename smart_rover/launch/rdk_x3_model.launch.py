@@ -42,11 +42,11 @@ def generate_launch_description():
             output='screen',
             arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
         ),
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
-            output='screen',
-            arguments=['-d', rviz_config_file]
-        ),
+        # Node(
+        #     package='rviz2',
+        #     executable='rviz2',
+        #     name='rviz2',
+        #     output='screen',
+        #     arguments=['-d', rviz_config_file]
+        # ),
     ])

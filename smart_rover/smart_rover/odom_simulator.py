@@ -29,7 +29,8 @@ class OdomSimulator(Node):
 
         self.odom_pub = self.create_publisher(Odometry, '/odom', 10)
         self.cmd_sub = self.create_subscription(Twist, '/cmd_vel', self.cmd_callback, 10)
-        self.timer = self.create_timer(0.05, self.update)       
+        self.timer = self.create_timer(0.05, self.update)
+        self.get_logger().info(f"Simulacion de odometria inicializada")   
 
         self.v = 0.0
         self.w = 0.0
@@ -39,10 +40,13 @@ class OdomSimulator(Node):
         self.w = msg.angular.z
 
     def update(self):
-        self.get_logger().info(f"Simulacion de odometria inicializada")
         now = self.get_clock().now()
         dt = (now - self.last_time).nanoseconds * 1e-9
         self.last_time = now
+
+        # Limitar dt para evitar saltos grandes
+        if dt > 0.2:
+            dt = 0.2
 
         # Integrar movimiento
         self.x += self.v * math.cos(self.theta) * dt
