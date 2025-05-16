@@ -26,6 +26,7 @@ setup(
     entry_points={
         'console_scripts': [
             'planning = path_planning.planning_node:main',
+            'splines = path_planning.spline_publisher:main',
         ],
     },
 )

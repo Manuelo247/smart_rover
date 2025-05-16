@@ -6,14 +6,12 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Map1/Status1
-        - /Map1/Topic1
+        - /Mapa1/Topic1
+        - /Splines1
+        - /Splines1/Offset1
         - /Robot pose1/Topic1
-        - /Goal pose1/Status1
-        - /RobotModel1/Status1
-        - /RobotModel1/Mass Properties1
-        - /RobotModel1/Description Topic1
-        - /local goal pose1
+        - /rdk x31/Mass Properties1
+        - /rdk x31/Description Topic1
       Splitter Ratio: 0.5277777910232544
     Tree Height: 629
   - Class: rviz_common/Selection
@@ -119,7 +117,7 @@ Visualization Manager:
       Color Scheme: raw
       Draw Behind: false
       Enabled: true
-      Name: Map
+      Name: Mapa
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -161,7 +159,35 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /planned_path
+        Value: /planning/planned_path
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz_default_plugins/Path
+      Color: 26; 95; 180
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.05000000074505806
+      Line Style: Lines
+      Line Width: 1
+      Name: Splines
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0.10000000149011612
+      Pose Color: 255; 85; 255
+      Pose Style: Axes
+      Radius: 0.004999999888241291
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /spline/planned_path
       Value: true
     - Alpha: 1
       Axes Length: 1
@@ -201,7 +227,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /global_goal_pose
+        Value: /goal_pose/global
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -307,7 +333,7 @@ Visualization Manager:
       Mass Properties:
         Inertia: false
         Mass: false
-      Name: RobotModel
+      Name: rdk x3
       TF Prefix: ""
       Update Interval: 0
       Value: true
@@ -343,7 +369,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /local_goal_pose
+        Value: /goal_pose/local
       Value: true
   Enabled: true
   Global Options:
@@ -375,7 +401,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /local_goal_pose
+        Value: /goal_pose/global
     - Class: rviz_default_plugins/PublishPoint
       Single click: true
       Topic:
@@ -391,25 +417,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 4.876987457275391
+      Distance: 12.771570205688477
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 3.052170991897583
-        Y: 1.9295320510864258
-        Z: 1.7368519306182861
+        X: 1.500010371208191
+        Y: 0.8627974390983582
+        Z: -1.2037774324417114
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5697963237762451
+      Pitch: 1.5097960233688354
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.158010482788086
+      Yaw: 3.228010654449463
     Saved: ~
 Window Geometry:
   Displays:

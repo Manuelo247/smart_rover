@@ -84,10 +84,10 @@ class AStarPlannerNode(Node):
         # self.costmap = None  
 
         # --- Subscripciones y publicaciones ---
-        self.odom_sub = self.create_subscription(Odometry, 'odom', self.odom_callback, 10)
-        self.goal_sub = self.create_subscription(PoseStamped, 'global_goal_pose', self.goal_callback, 10)
-        self.map_sub = self.create_subscription(OccupancyGrid, 'map', self.map_callback, 1)
-        self.path_pub = self.create_publisher(Path, 'planned_path', 10)
+        self.odom_sub = self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
+        self.goal_sub = self.create_subscription(PoseStamped, '/goal_pose/global', self.goal_callback, 10)
+        self.map_sub = self.create_subscription(OccupancyGrid, '/map', self.map_callback, 1)
+        self.path_pub = self.create_publisher(Path, '/planning/planned_path', 10)
 
         self.current_pose = None
         self.get_logger().info('A* / Theta* planner node listo (esperando mapa).')
