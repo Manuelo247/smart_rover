@@ -6,46 +6,23 @@ from launch.actions import IncludeLaunchDescription
 
 def generate_launch_description():
     # Paths a los archivos de lanzamiento individuales
-    yahboomcar_launch = os.path.join(
-        get_package_share_directory('yahboomcar_bringup'),
-        'launch',
-        'yahboomcar_bringup_launch.py'
-    )
-
-<<<<<<< HEAD
-    #smart_rover_launch = os.path.join(
-    #    get_package_share_directory('smart_rover'),
-    #    'launch',
-    #    'rdk_x3_model.launch.py'
-    #)
-=======
-    smart_rover_launch = os.path.join(
+    components_launch = os.path.join(
         get_package_share_directory('smart_rover'),
         'launch',
-        'rdk_x3_model.launch.py'
+        'components.launch.py'
     )
->>>>>>> f057b10fe58973ad6050474130d37f36f99d8ce8
 
-    lidar_launch = os.path.join(
-        get_package_share_directory('oradar_lidar'),
+    external_control_launch = os.path.join(
+        get_package_share_directory('smart_rover'),
         'launch',
-        'ms200_scan.launch.py'
+        'external_control.launch.py'
     )
 
     return LaunchDescription([
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(yahboomcar_launch)
+            PythonLaunchDescriptionSource(components_launch)
         ),
-<<<<<<< HEAD
-        #IncludeLaunchDescription(
-        #    PythonLaunchDescriptionSource(smart_rover_launch)
-        #),
-=======
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(smart_rover_launch)
-        ),
->>>>>>> f057b10fe58973ad6050474130d37f36f99d8ce8
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(lidar_launch)
+            PythonLaunchDescriptionSource(external_control_launch)
         ),
     ])

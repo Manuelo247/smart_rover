@@ -24,7 +24,7 @@ class FeedbackLinearizationController(Node):
         # Subscripción a la posición deseada (ahora PoseStamped)
         self.goal_sub = self.create_subscription(
             PoseStamped,
-            '/local_goal_pose',
+            '/goal_pose/local',
             self.goal_callback,
             10
         )
@@ -37,8 +37,16 @@ class FeedbackLinearizationController(Node):
             10
         )
 
+        # Subscripción a la velocidad deseada
+        self.cmd_desired_sub = self.create_subscription(
+            Twist,
+            '/cmd_vel/desired',
+            self.cmd_desired_callback,
+            10
+        )
+
         # Publicador de velocidad
-        self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.cmd_pub = self.create_publisher(Twist, '/cmd_vel/linearization', 10)
 
         # Publicador para visualizar el objetivo en RViz
         self.marker_pub = self.create_publisher(Marker, '/visualization_marker', 10)
@@ -52,13 +60,22 @@ class FeedbackLinearizationController(Node):
         self.qd_dot = np.array([0.0, 0.0])  # velocidad deseada inicial
 
         self.last_log_time = self.get_clock().now()
-        self.log_interval = rclpy.duration.Duration(seconds=0.5)
+        self.log_interval = rclpy.duration.Duration(seconds=1)
+        self.last_goal_reached_log_time = self.get_clock().now()  # Nueva variable
+        self._last_info_time = self.get_clock().now()
+
+    def info_throttled(self, msg):
+        """Publica info solo si ha pasado al menos 0.5s desde el último info."""
+        now = self.get_clock().now()
+        if (now - self._last_info_time).nanoseconds * 1e-9 > 0.5:
+            self.get_logger().info(msg)
+            self._last_info_time = now
 
     def goal_callback(self, msg: PoseStamped):
         """Callback para actualizar la posición deseada."""
-        self.qd_prev = np.copy(self.qd)  # Guarda la posición deseada anterior antes de actualizar
+        self.qd_prev = np.copy(self.qd)
         self.qd = np.array([msg.pose.position.x, msg.pose.position.y])
-        self.get_logger().info(f"Nueva posición deseada: x={msg.pose.position.x:.2f}, y={msg.pose.position.y:.2f}")
+        self.info_throttled(f"Nueva posición deseada: x={msg.pose.position.x:.2f}, y={msg.pose.position.y:.2f}")
         self.publish_goal_marker(msg.pose.position.x, msg.pose.position.y)
 
     def publish_goal_marker(self, x, y):
@@ -99,6 +116,10 @@ class FeedbackLinearizationController(Node):
         # Actualizar el estado del robot
         self.q = np.array([x, y, theta])
 
+    def cmd_desired_callback(self, msg: Twist):
+        """Actualiza la velocidad deseada (qd_dot) usando /cmd_vel/desired."""
+        self.qd_dot = np.array([msg.linear.x, msg.angular.z])
+
     def update(self):
         """Actualizar el control y publicar comandos de velocidad."""
         # Calcular la derivada numérica de la trayectoria deseada
@@ -109,10 +130,7 @@ class FeedbackLinearizationController(Node):
         e = np.array([x, y]) - self.qd
 
         # Publicar la distancia al objetivo solo cada 0.5 segundos
-        now = self.get_clock().now()
-        if (now - self.last_log_time) > self.log_interval:
-            self.get_logger().info(f"Distancia al objetivo: {np.linalg.norm(e):.2f}")
-            self.last_log_time = now
+        self.info_throttled(f"Distancia al objetivo: {np.linalg.norm(e):.2f}")
 
         c, s = np.cos(theta), np.sin(theta)
         D = np.array([
@@ -130,19 +148,10 @@ class FeedbackLinearizationController(Node):
         v, w = U
 
         # Frenado progresivo si está cerca del objetivo
-        #distance = np.linalg.norm(e)
         if np.linalg.norm(e) < 0.1:
             v = 0.0
             w = 0.0
-            self.get_logger().info("Objetivo alcanzado.")
-        #if distance < 0.2:
-        #    v *= distance / 0.2
-
-        # Limitar las velocidades
-        #max_linear_speed = 0.2  # o incluso 0.1 para empezar
-        #max_angular_speed = 0.5
-        #v = np.clip(v, -max_linear_speed, max_linear_speed)
-        #w = np.clip(w, -max_angular_speed, max_angular_speed)
+            self.info_throttled("Objetivo alcanzado.")
 
         self.get_logger().debug(f"CMD: v={v:.2f}, w={w:.2f}")
 

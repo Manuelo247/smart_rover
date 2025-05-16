@@ -1,96 +1,89 @@
 #!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float64
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, PoseStamped
 from nav_msgs.msg import Odometry
 import math
 
-class YawController(Node):
+class AngleController(Node):
     def __init__(self):
-        super().__init__('yaw_controller')
+        super().__init__('angle_controller')
 
-        # --- Parámetros PID y límites ---
-        self.declare_parameter('k_p', 0.5)             # reduje P respecto al ejemplo anterior
-        self.declare_parameter('k_d', 0.1)             # ganancia derivativa
-        self.declare_parameter('angle_tolerance', 0.01)
-        self.declare_parameter('max_ang_speed', 1.0)   # [rad/s]
-        self.declare_parameter('max_ang_accel', 0.5)   # [rad/s²]
+        # Parámetros
+        self.declare_parameter('k', 1.5)
+        self.declare_parameter('angle_tolerance', 0.05)  # radianes
 
-        self.k_p           = self.get_parameter('k_p').value
-        self.k_d           = self.get_parameter('k_d').value
-        self.angle_tol     = self.get_parameter('angle_tolerance').value
-        self.max_w         = self.get_parameter('max_ang_speed').value
-        self.max_accel     = self.get_parameter('max_ang_accel').value
+        self.k           = self.get_parameter('k').value
+        self.angle_tol   = self.get_parameter('angle_tolerance').value
+        self.goal_yaw    = 0.0  # Inicialmente en 0
 
-        # estado interno para D y ramp
-        self.prev_err      = 0.0
-        self.prev_w        = 0.0
+        self.current_yaw = 0.0
+        self.current_x   = 0.0
+        self.current_y   = 0.0
+        self.dt          = 0.05  # 20 Hz
 
-        self.current_yaw   = 0.0
-        self.goal_yaw      = 0.0
-        self.dt            = 0.05  # 20 Hz
+        # Suscripciones y publicaciones
+        self.odom_sub = self.create_subscription(
+            Odometry, '/odom', self.odom_callback, 10)
+        self.local_goal_pose_sub = self.create_subscription(
+            PoseStamped, '/goal_pose/local', self.local_goal_pose_callback, 10)
+        self.cmd_pub = self.create_publisher(
+            Twist, '/cmd_vel/angle', 10)
 
-        # Subscripciones y publicador
-        self.create_subscription(Float64, '/goal_yaw', self.goal_callback, 10)
-        self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
-        self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.timer = self.create_timer(self.dt, self.update)
 
-        # Timer
-        self.create_timer(self.dt, self.update)
-        self.get_logger().info('YawController con PD y ramp iniciado.')
+    def local_goal_pose_callback(self, msg):
+        print("[DEBUG] Callback /local_goal_pose recibido")
+        # Calcula el ángulo objetivo a partir de la posición GLOBAL del mensaje PoseStamped
+        goal_x = msg.pose.position.x
+        goal_y = msg.pose.position.y
+        dx = goal_x - self.current_x
+        dy = goal_y - self.current_y
+        self.goal_yaw = math.atan2(dy, dx)
+        print(f"[GOAL] Nueva pose global recibida: x={goal_x:.2f}, y={goal_y:.2f} -> Yaw objetivo: {math.degrees(self.goal_yaw):.2f}°")
 
-    def normalize_angle(self, a: float) -> float:
-        return math.atan2(math.sin(a), math.cos(a))
-
-    def goal_callback(self, msg: Float64):
-        self.goal_yaw = self.normalize_angle(msg.data)
-        self.get_logger().info(f'Nuevo goal_yaw: {self.goal_yaw:.2f} rad')
-
-    def odom_callback(self, msg: Odometry):
+    def odom_callback(self, msg):
+        # Guarda la posición actual y extrae el ángulo yaw desde el quaternion de la odometría
+        self.current_x = msg.pose.pose.position.x
+        self.current_y = msg.pose.pose.position.y
         q = msg.pose.pose.orientation
-        siny = 2*(q.w*q.z + q.x*q.y)
-        cosy = 1-2*(q.y*q.y + q.z*q.z)
-        self.current_yaw = math.atan2(siny, cosy)
+        siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
+        cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
+        self.current_yaw = math.atan2(siny_cosp, cosy_cosp)
+        # print(f"[ODOM] Posición actual: x={self.current_x:.2f}, y={self.current_y:.2f} | Yaw actual: {math.degrees(self.current_yaw):.2f}°")
+
+    def normalize_angle(self, angle):
+        # Normaliza el ángulo a [-pi, pi]
+        while angle > math.pi:
+            angle -= 2.0 * math.pi
+        while angle < -math.pi:
+            angle += 2.0 * math.pi
+        return angle
 
     def update(self):
-        # error
-        err = self.normalize_angle(self.goal_yaw - self.current_yaw)
+        # Error de ángulo
+        err = self.normalize_angle(self.current_yaw - self.goal_yaw)
 
-        # derivada de error
-        err_dot = (err - self.prev_err) / self.dt
-        self.prev_err = err
+        # Ley de control: U = -k * e
+        w = -self.k * err
 
-        # PD sin límites aún
-        w_unlim = self.k_p * err + self.k_d * err_dot
-
-        # Limitar aceleración angular (ramp-up)
-        delta = w_unlim - self.prev_w
-        max_delta = self.max_accel * self.dt
-        if abs(delta) > max_delta:
-            w_ramped = self.prev_w + math.copysign(max_delta, delta)
-        else:
-            w_ramped = w_unlim
-
-        # Limitar velocidad angular
-        w = max(-self.max_w, min(self.max_w, w_ramped))
-        self.prev_w = w
-
-        # Si ya estamos dentro de la tolerancia, frenar
+        # Si el error es pequeño, detenerse
         if abs(err) < self.angle_tol:
             w = 0.0
 
-        # Publicar (sin componente lineal)
+        # Prints para depuración en grados
+        print(f"[CONTROL] Yaw actual: {math.degrees(self.current_yaw):.2f}° | Yaw objetivo: {math.degrees(self.goal_yaw):.2f}° | Error: {math.degrees(err):.2f}° | w: {w:.3f} rad/s")
+
+        # Publicar comando de velocidad angular
         twist = Twist()
         twist.linear.x  = 0.0
         twist.angular.z = float(w)
         self.cmd_pub.publish(twist)
 
-        self.get_logger().debug(f"err={err:.3f}, err_dot={err_dot:.3f}, w={w:.3f}")
-
 def main(args=None):
     rclpy.init(args=args)
-    node = YawController()
+    node = AngleController()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

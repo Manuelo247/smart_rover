@@ -44,6 +44,10 @@ class OdomSimulator(Node):
         dt = (now - self.last_time).nanoseconds * 1e-9
         self.last_time = now
 
+        # Limitar dt para evitar saltos grandes
+        if dt > 0.2:
+            dt = 0.2
+
         # Integrar movimiento
         self.x += self.v * math.cos(self.theta) * dt
         self.y += self.v * math.sin(self.theta) * dt
