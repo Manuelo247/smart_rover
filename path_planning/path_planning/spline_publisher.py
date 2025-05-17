@@ -44,13 +44,22 @@ class SplinePathPublisher(Node):
         self.total_segments = 0
         self.segment_published = False
 
+        self._last_info_time = self.get_clock().now()
+
+    def info_throttled(self, msg):
+        """Publica info solo si ha pasado al menos 0.5s desde el último info."""
+        now = self.get_clock().now()
+        if (now - self._last_info_time).nanoseconds * 1e-9 > 0.5:
+            self.get_logger().info(msg)
+            self._last_info_time = now
+
     def planned_path_callback(self, msg):
         self.path_points = [(pose.pose.position.x, pose.pose.position.y) for pose in msg.poses]
         self.total_segments = len(self.path_points) - 1
         self.current_segment = 0
         self.segment_published = False
         self.path_received = True
-        self.get_logger().info(f"Path recibido con {len(self.path_points)} puntos.")
+        self.info_throttled(f"Path recibido con {len(self.path_points)} puntos.")
 
         # Calcula velocidades deseadas para suavidad
         self.vx_points = [0]
@@ -71,7 +80,7 @@ class SplinePathPublisher(Node):
             return
 
         if self.current_segment >= self.total_segments:
-            self.get_logger().info("Todos los segmentos ya fueron publicados.")
+            self.info_throttled("Todos los segmentos ya fueron publicados.")
             return
 
         # Si ya publiqué el segmento, espero a que el robot llegue al destino
@@ -83,7 +92,7 @@ class SplinePathPublisher(Node):
             y = self.current_pose.position.y
             dist = np.hypot(x_goal - x, y_goal - y)
             if dist < 0.15:  # Tolerancia de llegada
-                self.get_logger().info(f"Llegó al punto {self.current_segment+1}, avanzando al siguiente segmento.")
+                self.info_throttled(f"Llegó al punto {self.current_segment+1}, avanzando al siguiente segmento.")
                 self.current_segment += 1
                 self.segment_published = False
             return
@@ -115,7 +124,7 @@ class SplinePathPublisher(Node):
             pose.pose.orientation.w = 1.0
             path_msg.poses.append(pose)
         self.path_pub.publish(path_msg)
-        self.get_logger().info(f"Segmento {self.current_segment+1} publicado con {len(t_segment)} puntos.")
+        self.info_throttled(f"Segmento {self.current_segment+1} publicado con {len(t_segment)} puntos.")
         self.segment_published = True
 
         # Calcular y publicar cmd_vels como array
@@ -146,7 +155,7 @@ class SplinePathPublisher(Node):
         cmd_vels_msg = TwistArray()
         cmd_vels_msg.twists = cmd_vels
         self.cmd_vels_pub.publish(cmd_vels_msg)
-        self.get_logger().info(f"Publicado array de cmd_vels con {len(cmd_vels)} elementos.")
+        self.info_throttled(f"Publicado array de cmd_vels con {len(cmd_vels)} elementos.")
 
 def main(args=None):
     rclpy.init(args=args)

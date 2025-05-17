@@ -19,8 +19,18 @@ def generate_launch_description():
             name='path_follower'
         ),
         Node(
+            package='smart_rover',
+            executable='switch_controller',
+            name='switch_controller'
+        ),
+        Node(
             package='path_planning',
             executable='planning',
             name='planning'
+        ),
+        Node(
+            package='path_planning',
+            executable='splines',
+            name='splines'
         ),
     ])
