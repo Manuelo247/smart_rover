@@ -3,6 +3,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.actions import IncludeLaunchDescription
+from launch_ros.actions import Node
 
 def generate_launch_description():
     # Paths a los archivos de lanzamiento individuales
@@ -17,6 +18,14 @@ def generate_launch_description():
         'launch',
         'external_control.launch.py'
     )
+    
+    static_tf_node = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_transform_publisher',
+        output='screen',
+        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
+    )
 
     return LaunchDescription([
         IncludeLaunchDescription(
@@ -25,4 +34,5 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(external_control_launch)
         ),
+        static_tf_node
     ])
