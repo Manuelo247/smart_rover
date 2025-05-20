@@ -17,11 +17,7 @@ class GridMappingNode(Node):
         # Parámetros del mapa
         width = 400
         height = 400
-<<<<<<< HEAD
-        resolution = 0.1
-=======
         resolution = 0.05
->>>>>>> f057b10fe58973ad6050474130d37f36f99d8ce8
         origin = (-10.0, -10.0)
         self.map = OccupancyGridMap(width, height, resolution,
                                     origin_x=origin[0], origin_y=origin[1])

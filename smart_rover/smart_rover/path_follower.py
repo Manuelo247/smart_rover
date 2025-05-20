@@ -5,7 +5,7 @@ from geometry_msgs.msg import PoseStamped, Twist
 import numpy as np
 
 # Importa tu mensaje personalizado
-from s4_custom_interface.msg import TwistArray
+from rover_interfaces.msg import TwistArray
 
 class PathFollower(Node):
     def __init__(self):

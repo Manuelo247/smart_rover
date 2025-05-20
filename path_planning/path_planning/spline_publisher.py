@@ -7,7 +7,7 @@ from geometry_msgs.msg import Twist
 import numpy as np
 
 # IMPORTA TU MENSAJE PERSONALIZADO
-from s4_custom_interface.msg import TwistArray
+from rover_interfaces.msg import TwistArray
 
 def cubic_spline_coeffs(p0, v0, p1, v1, tf):
     T = np.array([
