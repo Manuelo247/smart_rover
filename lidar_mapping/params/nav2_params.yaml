@@ -1,0 +1,41 @@
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      use_sim_time: false
+      global_frame: map
+      robot_base_frame: base_footprint
+      update_frequency: 1.0
+      publish_frequency: 1.0
+      static_layer:
+        enabled: true
+      obstacle_layer:
+        enabled: true
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          clearing: true
+          marking: true
+      inflation_layer:
+        enabled: true
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      use_sim_time: false
+      global_frame: odom
+      robot_base_frame: base_footprint
+      update_frequency: 5.0
+      publish_frequency: 2.0
+      static_layer:
+        enabled: true
+      obstacle_layer:
+        enabled: true
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          clearing: true
+          marking: true
+      inflation_layer:
+        enabled: true
