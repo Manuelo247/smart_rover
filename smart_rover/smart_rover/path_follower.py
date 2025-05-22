@@ -5,18 +5,19 @@ from geometry_msgs.msg import PoseStamped, Twist
 import numpy as np
 
 # Importa tu mensaje personalizado
-from rover_interfaces.msg import TwistArray
+# from rover_interfaces.msg import TwistArray  # Comentado: solo para spline
 
 class PathFollower(Node):
     def __init__(self):
         super().__init__('path_follower')
-        self.path_sub = self.create_subscription(Path, '/spline/planned_path', self.path_callback, 10)
+        # Suscripción directa al path planeado
+        self.path_sub = self.create_subscription(Path, '/planned_path', self.path_callback, 10)
         self.odom_sub = self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
-        self.twistarray_sub = self.create_subscription(TwistArray, '/spline/cmd_vels', self.twistarray_callback, 10)
+        # self.twistarray_sub = self.create_subscription(TwistArray, '/spline/cmd_vels', self.twistarray_callback, 10)  # Comentado: solo para spline
         self.goal_pub = self.create_publisher(PoseStamped, '/goal_pose/local', 10)
-        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel/desired', 10)
+        # self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel/desired', 10)
         self.path = []
-        self.cmd_vels = []
+        # self.cmd_vels = []  # Comentado: solo para spline
         self.current_idx = 0
         self.threshold = 0.15  # distancia para cambiar al siguiente punto
         self.current_pose = None
@@ -26,9 +27,9 @@ class PathFollower(Node):
         self.current_idx = 0
         self.get_logger().info(f"Nuevo path recibido con {len(self.path)} puntos.")
 
-    def twistarray_callback(self, msg):
-        self.cmd_vels = msg.twists
-        self.get_logger().info(f"TwistArray recibido con {len(self.cmd_vels)} velocidades.")
+    # def twistarray_callback(self, msg):
+    #     self.cmd_vels = msg.twists
+    #     self.get_logger().info(f"TwistArray recibido con {len(self.cmd_vels)} velocidades.")
 
     def odom_callback(self, msg):
         self.current_pose = msg.pose.pose
@@ -53,9 +54,9 @@ class PathFollower(Node):
         goal_msg.pose = target
         self.goal_pub.publish(goal_msg)
 
-        # Publicar el cmd_vel deseado correspondiente
-        if self.cmd_vels and self.current_idx < len(self.cmd_vels):
-            self.cmd_vel_pub.publish(self.cmd_vels[self.current_idx])
+        # Ya no publica cmd_vels de spline
+        # if self.cmd_vels and self.current_idx < len(self.cmd_vels):
+        #     self.cmd_vel_pub.publish(self.cmd_vels[self.current_idx])
 
 def main(args=None):
     rclpy.init(args=args)
