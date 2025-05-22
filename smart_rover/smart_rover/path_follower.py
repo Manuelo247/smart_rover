@@ -11,7 +11,7 @@ class PathFollower(Node):
     def __init__(self):
         super().__init__('path_follower')
         # Suscripción directa al path planeado
-        self.path_sub = self.create_subscription(Path, '/planned_path', self.path_callback, 10)
+        self.path_sub = self.create_subscription(Path, '/planning/planned_path', self.path_callback, 10)
         self.odom_sub = self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
         # self.twistarray_sub = self.create_subscription(TwistArray, '/spline/cmd_vels', self.twistarray_callback, 10)  # Comentado: solo para spline
         self.goal_pub = self.create_publisher(PoseStamped, '/goal_pose/local', 10)
