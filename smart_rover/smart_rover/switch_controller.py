@@ -13,6 +13,7 @@ class SupervisorController(Node):
         self.angle_tol = 0.05  # Tolerancia angular (rad)
         self.k_angle = 1.5     # Ganancia para el giro
         self.state = "TURN"    # TURN o FOLLOW
+        self.dist_tol = 0.01  # Tolerancia de distancia al objetivo
 
         # Estado actual
         self.current_yaw = 0.0
@@ -73,6 +74,14 @@ class SupervisorController(Node):
 
     def update(self):
         err_angle = self.normalize_angle(self.goal_yaw - self.current_yaw)
+        dist = math.hypot(self.goal_x - self.current_x, self.goal_y - self.current_y)
+
+        # Si está cerca del objetivo, detenerse
+        if dist < self.dist_tol:
+            stop = Twist()
+            self.cmd_pub.publish(stop)
+            # self.get_logger().info("Objetivo alcanzado. Robot detenido.")
+            return
 
         if self.state == "TURN":
             # Solo girar hasta estar alineado

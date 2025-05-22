@@ -148,10 +148,10 @@ class FeedbackLinearizationController(Node):
         v, w = U
 
         # Frenado progresivo si está cerca del objetivo
-        if np.linalg.norm(e) < 0.1:
-            v = 0.0
-            w = 0.0
-            self.info_throttled("Objetivo alcanzado.")
+        # if np.linalg.norm(e) < 0.1:
+        #     v = 0.0
+        #     w = 0.0
+        #     self.info_throttled("Objetivo alcanzado.")
 
         self.get_logger().debug(f"CMD: v={v:.2f}, w={w:.2f}")
 
