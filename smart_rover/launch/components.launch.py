@@ -24,11 +24,11 @@ def generate_launch_description():
         'ms200_scan.launch.py'
     )
 
-    map_gmapping_launch = os.path.join(
-        get_package_share_directory('slam_gmapping'),
-        'launch',
-        'slam_gmapping.launch.py'
-    )
+    #map_gmapping_launch = os.path.join(
+    #    get_package_share_directory('slam_gmapping'),
+    #    'launch',
+    #    'slam_gmapping.launch.py'
+    #)
 
     return LaunchDescription([
         IncludeLaunchDescription(
@@ -40,7 +40,7 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(lidar_launch)
         ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(map_gmapping_launch)
-        ),
+        #IncludeLaunchDescription(
+        #    PythonLaunchDescriptionSource(map_gmapping_launch)
+        #),
     ])

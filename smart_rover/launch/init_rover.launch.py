@@ -19,13 +19,13 @@ def generate_launch_description():
         'external_control.launch.py'
     )
     
-    static_tf_node = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_transform_publisher',
-        output='screen',
-        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
-    )
+    # static_tf_node = Node(
+    #     package='tf2_ros',
+    #     executable='static_transform_publisher',
+    #     name='static_transform_publisher',
+    #     output='screen',
+    #     arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
+    # )
 
     return LaunchDescription([
         IncludeLaunchDescription(
@@ -34,5 +34,5 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(external_control_launch)
         ),
-        static_tf_node
+    #    static_tf_node
     ])
