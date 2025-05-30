@@ -11,7 +11,7 @@ class SupervisorController(Node):
 
         # Parámetros
         self.angle_tol = 0.05  # Tolerancia angular (rad)
-        self.k_angle = 1.5     # Ganancia para el giro
+        self.k_angle = 0.4     # Ganancia para el giro
         self.state = "TURN"    # TURN o FOLLOW
 
         # Estado actual
