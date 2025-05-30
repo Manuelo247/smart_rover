@@ -28,9 +28,9 @@ def generate_launch_description():
             executable='planning',
             name='planning'
         ),
-        Node(
-            package='path_planning',
-            executable='splines',
-            name='splines'
-        ),
+        # Node(
+        #     package='path_planning',
+        #     executable='splines',
+        #     name='splines'
+        # ),
     ])
