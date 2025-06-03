@@ -1,14 +1,26 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+import os
 
 def generate_launch_description():
+
+    package_dir= get_package_share_directory("lidar_mapping")
+    amcl_params = os.path.join(package_dir, "params", "amcl_params.yaml")
+
+    map_path = os.path.join(
+        get_package_share_directory('smart_rover'),
+        'resource',
+        'mapa_ines.yaml'
+    )
+    
     return LaunchDescription([
         Node(
             package='nav2_map_server',
             executable='map_server',
             name='map_server',
             output='screen',
-            parameters=[{'yaml_filename': '/home/puzzlebot/my_map.yaml'}]
+            parameters=[{'yaml_filename': map_path}]
         ),
         Node(
             package='nav2_amcl',
