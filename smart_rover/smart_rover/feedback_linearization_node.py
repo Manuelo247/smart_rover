@@ -116,12 +116,23 @@ class FeedbackLinearizationController(Node):
         # Actualizar el estado del robot
         self.q = np.array([x, y, theta])
 
+        # Si es la primera vez que recibimos odometría, igualar qd a la posición actual
+        if not hasattr(self, '_odom_received'):
+            self.qd = np.array([x, y])
+            self.qd_prev = np.copy(self.qd)
+            self.get_logger().info(f"[INIT] Primer mensaje de odometría recibido. qd inicializado a: x={x:.2f}, y={y:.2f}")
+            self._odom_received = True
+
     def cmd_desired_callback(self, msg: Twist):
         """Actualiza la velocidad deseada (qd_dot) usando /cmd_vel/desired."""
         self.qd_dot = np.array([msg.linear.x, msg.angular.z])
 
     def update(self):
         """Actualizar el control y publicar comandos de velocidad."""
+        # No hacer nada hasta recibir el primer mensaje de odometría
+        if not hasattr(self, '_odom_received'):
+            return
+
         # Calcular la derivada numérica de la trayectoria deseada
         self.qd_dot = (self.qd - self.qd_prev) / self.dt
         self.qd_prev = np.copy(self.qd)

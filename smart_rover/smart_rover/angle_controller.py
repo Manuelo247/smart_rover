@@ -16,12 +16,13 @@ class AngleController(Node):
 
         self.k           = self.get_parameter('k').value
         self.angle_tol   = self.get_parameter('angle_tolerance').value
-        self.goal_yaw    = 0.0  # Inicialmente en 0
 
         self.current_yaw = 0.0
         self.current_x   = 0.0
         self.current_y   = 0.0
         self.dt          = 0.05  # 20 Hz
+
+        self.goal_yaw    = None  # Inicialmente None, se asigna en la primera odometría
 
         # Suscripciones y publicaciones
         self.odom_sub = self.create_subscription(
@@ -30,6 +31,7 @@ class AngleController(Node):
             PoseStamped, '/goal_pose/local', self.local_goal_pose_callback, 10)
         self.cmd_pub = self.create_publisher(
             Twist, '/cmd_vel/angle', 10)
+            # Twist, '/control', 10)
 
         self.timer = self.create_timer(self.dt, self.update)
 
@@ -51,6 +53,10 @@ class AngleController(Node):
         siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
         cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
         self.current_yaw = math.atan2(siny_cosp, cosy_cosp)
+        
+        if self.goal_yaw is None:
+            self.goal_yaw = self.current_yaw
+            print(f"[INIT] Primer mensaje de odometría recibido. Yaw inicial: {math.degrees(self.current_yaw):.2f}°")
         # print(f"[ODOM] Posición actual: x={self.current_x:.2f}, y={self.current_y:.2f} | Yaw actual: {math.degrees(self.current_yaw):.2f}°")
 
     def normalize_angle(self, angle):
@@ -62,6 +68,9 @@ class AngleController(Node):
         return angle
 
     def update(self):
+        if self.goal_yaw is None:
+            return
+
         # Error de ángulo
         err = self.normalize_angle(self.current_yaw - self.goal_yaw)
 
@@ -73,7 +82,7 @@ class AngleController(Node):
             w = 0.0
 
         # Prints para depuración en grados
-        print(f"[CONTROL] Yaw actual: {math.degrees(self.current_yaw):.2f}° | Yaw objetivo: {math.degrees(self.goal_yaw):.2f}° | Error: {math.degrees(err):.2f}° | w: {w:.3f} rad/s")
+        print(f"[CONTROL] K: {self.k} |Yaw actual: {math.degrees(self.current_yaw):.2f}° | Yaw objetivo: {math.degrees(self.goal_yaw):.2f}° | Error: {math.degrees(err):.2f}° | w: {w:.3f} rad/s")
 
         # Publicar comando de velocidad angular
         twist = Twist()

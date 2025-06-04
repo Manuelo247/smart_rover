@@ -15,7 +15,8 @@ setup(
         (os.path.join('share', package_name, 'meshes'), glob('meshes/*')),
         (os.path.join('share', package_name, 'urdf'), glob('urdf/*')),
         (os.path.join('share', package_name, 'rviz'), glob('rviz/*')),
-        (os.path.join('share', package_name, 'launch'), glob('launch/*'))
+        (os.path.join('share', package_name, 'launch'), glob('launch/*')),
+        (os.path.join('share', package_name, 'resource'), glob('resource/*'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -33,6 +34,7 @@ setup(
             'rdk_x3_robot_static = smart_rover.state_publisher_static:main',
             'path_follower = smart_rover.path_follower:main',
             'switch_controller = smart_rover.switch_controller:main',
+            'safety = smart_rover.4nodo_seguridad:main',
         ],
     },
 )
