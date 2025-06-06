@@ -25,6 +25,7 @@ setup(
         'console_scripts': [
             'mapping = lidar_mapping.mapping_node_B:main',
             'mapping_test = lidar_mapping.mapping_test:main',
+            'initialpose = lidar_mapping.initialpose_from_localization:main',
         ],
     },
 )

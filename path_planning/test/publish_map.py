@@ -10,7 +10,7 @@ import os
 MAP_YAML = os.path.join(
     os.path.dirname(os.path.dirname(__file__)),
     'resource',
-    'ros2_custom_map.yaml'
+    'mapa_ines.yaml'
 )
 
 class MapPublisher(Node):

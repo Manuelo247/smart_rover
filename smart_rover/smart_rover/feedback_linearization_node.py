@@ -1,8 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Point, Twist, PoseStamped
-from nav_msgs.msg import Odometry
-from visualization_msgs.msg import Marker  # Agrega esta importación
+from visualization_msgs.msg import Marker
 import numpy as np
 import math
 
@@ -29,11 +28,11 @@ class FeedbackLinearizationController(Node):
             10
         )
 
-        # Subscripción a la odometría
-        self.odom_sub = self.create_subscription(
-            Odometry,
-            '/odom',
-            self.odom_callback,
+        # Subscripción a la pose localizada (en vez de odometría)
+        self.pose_sub = self.create_subscription(
+            PoseStamped,
+            '/odom/localization_pose',
+            self.pose_callback,
             10
         )
 
@@ -61,7 +60,7 @@ class FeedbackLinearizationController(Node):
 
         self.last_log_time = self.get_clock().now()
         self.log_interval = rclpy.duration.Duration(seconds=1)
-        self.last_goal_reached_log_time = self.get_clock().now()  # Nueva variable
+        self.last_goal_reached_log_time = self.get_clock().now()
         self._last_info_time = self.get_clock().now()
 
     def info_throttled(self, msg):
@@ -99,29 +98,29 @@ class FeedbackLinearizationController(Node):
         marker.color.a = 1.0
         self.marker_pub.publish(marker)
 
-    def odom_callback(self, msg: Odometry):
-        """Callback para actualizar el estado del robot usando la odometría."""
+    def pose_callback(self, msg: PoseStamped):
+        """Callback para actualizar el estado del robot usando la pose localizada."""
         # Posición
-        x = msg.pose.pose.position.x
-        y = msg.pose.pose.position.y
+        x = msg.pose.position.x
+        y = msg.pose.position.y
 
         # Convertir cuaternión a ángulo theta
-        q = msg.pose.pose.orientation
+        q = msg.pose.orientation
         siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
         cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
         theta = math.atan2(siny_cosp, cosy_cosp)
 
-        self.get_logger().debug(f"ODOM: x={x:.2f}, y={y:.2f}, theta={theta:.2f}")
+        self.get_logger().debug(f"POSE: x={x:.2f}, y={y:.2f}, theta={theta:.2f}")
 
         # Actualizar el estado del robot
         self.q = np.array([x, y, theta])
 
-        # Si es la primera vez que recibimos odometría, igualar qd a la posición actual
-        if not hasattr(self, '_odom_received'):
+        # Si es la primera vez que recibimos pose, igualar qd a la posición actual
+        if not hasattr(self, '_pose_received'):
             self.qd = np.array([x, y])
             self.qd_prev = np.copy(self.qd)
-            self.get_logger().info(f"[INIT] Primer mensaje de odometría recibido. qd inicializado a: x={x:.2f}, y={y:.2f}")
-            self._odom_received = True
+            self.get_logger().info(f"[INIT] Primer mensaje de pose recibido. qd inicializado a: x={x:.2f}, y={y:.2f}")
+            self._pose_received = True
 
     def cmd_desired_callback(self, msg: Twist):
         """Actualiza la velocidad deseada (qd_dot) usando /cmd_vel/desired."""
@@ -129,8 +128,8 @@ class FeedbackLinearizationController(Node):
 
     def update(self):
         """Actualizar el control y publicar comandos de velocidad."""
-        # No hacer nada hasta recibir el primer mensaje de odometría
-        if not hasattr(self, '_odom_received'):
+        # No hacer nada hasta recibir el primer mensaje de pose
+        if not hasattr(self, '_pose_received'):
             return
 
         # Calcular la derivada numérica de la trayectoria deseada
@@ -157,12 +156,6 @@ class FeedbackLinearizationController(Node):
             return
 
         v, w = U
-
-        # Frenado progresivo si está cerca del objetivo
-        # if np.linalg.norm(e) < 0.1:
-        #     v = 0.0
-        #     w = 0.0
-        #     self.info_throttled("Objetivo alcanzado.")
 
         self.get_logger().debug(f"CMD: v={v:.2f}, w={w:.2f}")
 

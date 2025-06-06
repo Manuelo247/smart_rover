@@ -1,7 +1,6 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist, PoseStamped
-from nav_msgs.msg import Odometry
 import math
 import numpy as np
 
@@ -25,7 +24,7 @@ class SupervisorController(Node):
         self.goal_yaw = 0.0
 
         # Suscripciones y publicaciones
-        self.odom_sub = self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
+        self.pose_sub = self.create_subscription(PoseStamped, '/odom/localization_pose', self.pose_callback, 10)
         self.goal_sub = self.create_subscription(PoseStamped, '/goal_pose/local', self.goal_callback, 10)
         self.cmd_pub = self.create_publisher(Twist, '/control', 10)
 
@@ -51,13 +50,10 @@ class SupervisorController(Node):
     
     def cmd_angle_callback(self, msg):
         self.cmd_angle = msg
-        #print("Angle callback")
         
     def cmd_linearization_callback(self, msg):
-        # Solo toma la componente angular, ignora la velocidad lineal
         self.cmd_linearization = Twist()
         self.cmd_linearization.linear = msg.linear
-        #print("FL callback")
         
     def goal_callback(self, msg):
         self.goal_x = msg.pose.position.x
@@ -66,10 +62,10 @@ class SupervisorController(Node):
         dy = self.goal_y - self.current_y
         self.goal_yaw = math.atan2(dy, dx)
 
-    def odom_callback(self, msg):
-        self.current_x = msg.pose.pose.position.x
-        self.current_y = msg.pose.pose.position.y
-        q = msg.pose.pose.orientation
+    def pose_callback(self, msg):
+        self.current_x = msg.pose.position.x
+        self.current_y = msg.pose.position.y
+        q = msg.pose.orientation
         siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
         cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
         self.current_yaw = math.atan2(siny_cosp, cosy_cosp)
@@ -84,7 +80,6 @@ class SupervisorController(Node):
     def update(self):
         err_angle = self.normalize_angle(self.goal_yaw - self.current_yaw)
         dist = math.hypot(self.goal_x - self.current_x, self.goal_y - self.current_y)
-        print("UPDATE")
         if dist < self.dist_tol:
             stop = Twist()
             self.cmd_pub.publish(stop)
@@ -121,10 +116,10 @@ class SupervisorController(Node):
             self._pending_state_time = None
 
         if self.state == "TURN":
-            self.get_logger().info(f"modo GIRO activo. err_angle: {err_angle}")
+            self.get_logger().debug(f"modo GIRO activo. err_angle: {err_angle}")
             self.cmd_pub.publish(self.cmd_angle)
         elif self.state == "FOLLOW":
-            self.get_logger().info(f"modo SEGUIMIENTO activo. err_angle: {err_angle}")
+            self.get_logger().debug(f"modo SEGUIMIENTO activo. err_angle: {err_angle}")
             self.cmd_pub.publish(self.cmd_linearization)
 
 def main(args=None):
