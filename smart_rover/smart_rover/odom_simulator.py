@@ -27,8 +27,8 @@ class OdomSimulator(Node):
         
         self.tf_broadcaster = TransformBroadcaster(self)
 
-        self.odom_pub = self.create_publisher(Odometry, '/odom', 10)
-        self.cmd_sub = self.create_subscription(Twist, '/cmd_vel', self.cmd_callback, 10)
+        self.odom_pub = self.create_publisher(Odometry, 'odom', 10)
+        self.cmd_sub = self.create_subscription(Twist, 'cmd_vel', self.cmd_callback, 10)
         self.timer = self.create_timer(0.05, self.update)
         self.get_logger().info(f"Simulacion de odometria inicializada")   
 

@@ -24,15 +24,15 @@ class SupervisorController(Node):
         self.goal_yaw = 0.0
 
         # Suscripciones y publicaciones
-        self.pose_sub = self.create_subscription(PoseStamped, '/odom/localization_pose', self.pose_callback, 10)
-        self.goal_sub = self.create_subscription(PoseStamped, '/goal_pose/local', self.goal_callback, 10)
-        self.cmd_pub = self.create_publisher(Twist, '/control', 10)
+        self.pose_sub = self.create_subscription(PoseStamped, 'odom/localization_pose', self.pose_callback, 10)
+        self.goal_sub = self.create_subscription(PoseStamped, 'goal_pose/local', self.goal_callback, 10)
+        self.cmd_pub = self.create_publisher(Twist, 'control', 10)
 
         # Suscribirse a los comandos de ambos controladores
         self.cmd_angle = Twist()
         self.cmd_linearization = Twist()
-        self.angle_sub = self.create_subscription(Twist, '/cmd_vel/angle', self.cmd_angle_callback, 10)
-        self.linearization_sub = self.create_subscription(Twist, '/cmd_vel/linearization', self.cmd_linearization_callback, 10)
+        self.angle_sub = self.create_subscription(Twist, 'cmd_vel/angle', self.cmd_angle_callback, 10)
+        self.linearization_sub = self.create_subscription(Twist, 'cmd_vel/linearization', self.cmd_linearization_callback, 10)
 
         self.timer = self.create_timer(0.05, self.update)
         self._last_info_time = self.get_clock().now()
@@ -83,7 +83,7 @@ class SupervisorController(Node):
         if dist < self.dist_tol:
             stop = Twist()
             self.cmd_pub.publish(stop)
-            self.get_logger().debug("Objetivo alcanzado. Robot detenido.")
+            self.get_logger().info("Objetivo alcanzado. Robot detenido.")
             self._pending_state = None
             self._pending_state_time = None
             return
@@ -116,10 +116,10 @@ class SupervisorController(Node):
             self._pending_state_time = None
 
         if self.state == "TURN":
-            self.get_logger().debug(f"modo GIRO activo. err_angle: {err_angle}")
+            self.get_logger().info(f"modo GIRO activo. err_angle: {err_angle}")
             self.cmd_pub.publish(self.cmd_angle)
         elif self.state == "FOLLOW":
-            self.get_logger().debug(f"modo SEGUIMIENTO activo. err_angle: {err_angle}")
+            self.get_logger().info(f"modo SEGUIMIENTO activo. err_angle: {err_angle}")
             self.cmd_pub.publish(self.cmd_linearization)
 
 def main(args=None):

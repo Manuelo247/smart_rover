@@ -7,15 +7,13 @@ package_name = 'path_planning'
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name],  # Usa lista explícita en lugar de find_packages
+    packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
-        ('share/' + package_name + '/resource', [
-            'resource/ros2_custom_map.yaml',
-            'resource/ros2_custom_map.pgm'
-        ]),
+        # Incluye todos los archivos dentro de resource/
+        (os.path.join('share', package_name, 'resource'), glob('resource/*')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

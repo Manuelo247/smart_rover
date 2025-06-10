@@ -13,6 +13,10 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
+        ('share/' + package_name + '/params', [
+            'params/amcl_params.yaml',
+            'params/ekf_amcl.yaml'
+        ]),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

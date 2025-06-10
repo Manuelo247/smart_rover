@@ -25,11 +25,11 @@ class AngleController(Node):
 
         # Suscripciones y publicaciones
         self.pose_sub = self.create_subscription(
-            PoseStamped, '/odom/localization_pose', self.pose_callback, 10)
+            PoseStamped, 'odom/localization_pose', self.pose_callback, 10)
         self.local_goal_pose_sub = self.create_subscription(
-            PoseStamped, '/goal_pose/local', self.local_goal_pose_callback, 10)
+            PoseStamped, 'goal_pose/local', self.local_goal_pose_callback, 10)
         self.cmd_pub = self.create_publisher(
-            Twist, '/cmd_vel/angle', 10)
+            Twist, 'cmd_vel/angle', 10)
             # Twist, '/control', 10)
 
         self.timer = self.create_timer(self.dt, self.update)

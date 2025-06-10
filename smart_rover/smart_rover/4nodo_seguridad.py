@@ -28,9 +28,9 @@ class SimpleSafetyNode(Node):
         self.back_history = deque(maxlen=5)
 
         # Subscripciones y publicaciones
-        self.scan_sub = self.create_subscription(LaserScan, '/scan', self.lidar_callback, 10)
-        self.cmd_sub = self.create_subscription(Twist, '/control', self.control_callback, 10)
-        self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.scan_sub = self.create_subscription(LaserScan, 'scan', self.lidar_callback, 10)
+        self.cmd_sub = self.create_subscription(Twist, 'control', self.control_callback, 10)
+        self.cmd_pub = self.create_publisher(Twist, 'cmd_vel', 10)
 
         # Hilo para entrada de teclado
         self.keyboard_thread = threading.Thread(target=self.keyboard_listener, daemon=True)

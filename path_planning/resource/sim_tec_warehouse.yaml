@@ -1,0 +1,7 @@
+image: tec_warehouse.pgm
+mode: scale
+resolution: 0.01
+origin: [-0.03, -0.03, 0] # [-0.00679, -0.0102, 0]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196

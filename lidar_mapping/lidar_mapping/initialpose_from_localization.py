@@ -6,9 +6,9 @@ class InitialPosePublisher(Node):
     def __init__(self):
         super().__init__('initialpose_from_localization')
         self.sub = self.create_subscription(
-            PoseStamped, '/odom/localization_pose', self.callback, 10)
+            PoseStamped, 'odom/localization_pose', self.callback, 10)
         self.pub = self.create_publisher(
-            PoseWithCovarianceStamped, '/initialpose', 1)
+            PoseWithCovarianceStamped, 'initialpose', 1)
         self.done = False
 
     def callback(self, msg):
@@ -16,7 +16,7 @@ class InitialPosePublisher(Node):
             return
 
         initialpose = PoseWithCovarianceStamped()
-        initialpose.header = msg.header
+        initialpose.header.stamp = self.get_clock().now().to_msg()
         initialpose.header.frame_id = 'map'
         initialpose.pose.pose = msg.pose
         self.pub.publish(initialpose)

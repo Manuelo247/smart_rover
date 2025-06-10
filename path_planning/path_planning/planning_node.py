@@ -15,7 +15,7 @@ from path_planning.theta_star import theta_star
 # =========================
 # PARÁMETROS AJUSTABLES
 # =========================
-ROBOT_RADIUS_M = 0.10
+ROBOT_RADIUS_M = 0.09
 COST_ALPHA = 10.0
 COST_BETA = 5.0
 MAP_FILENAME = 'mapa_ines.yaml'
@@ -64,11 +64,11 @@ class AStarPlannerNode(Node):
 
         # Subscripciones y publicaciones
         self.current_pose = None
-        self.current_pose_sub = self.create_subscription(PoseStamped, '/odom/localization_pose', self.update_current_pose, 10)
-        self.goal_sub = self.create_subscription(PoseStamped, '/goal_pose/global', self.goal_callback, 10)
-        self.map_sub = self.create_subscription(OccupancyGrid, '/map', self.map_callback, 1)
-        self.path_pub = self.create_publisher(Path, '/planning/planned_path', 10)
-        self.inflated_map_pub = self.create_publisher(OccupancyGrid, '/planning/inflated_map', 1)
+        self.current_pose_sub = self.create_subscription(PoseStamped, 'odom/localization_pose', self.update_current_pose, 10)
+        self.goal_sub = self.create_subscription(PoseStamped, 'goal_pose/global', self.goal_callback, 10)
+        self.map_sub = self.create_subscription(OccupancyGrid, 'map', self.map_callback, 1)
+        self.path_pub = self.create_publisher(Path, 'planning/planned_path', 10)
+        self.inflated_map_pub = self.create_publisher(OccupancyGrid, 'planning/inflated_map', 1)
 
         self.get_logger().info('Planner iniciado (esperando mapa y pose).')
 

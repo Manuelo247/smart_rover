@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Point, Twist, PoseStamped
 from visualization_msgs.msg import Marker
+from std_msgs.msg import Float32
 import numpy as np
 import math
 
@@ -23,7 +24,7 @@ class FeedbackLinearizationController(Node):
         # Subscripción a la posición deseada (ahora PoseStamped)
         self.goal_sub = self.create_subscription(
             PoseStamped,
-            '/goal_pose/local',
+            'goal_pose/local',
             self.goal_callback,
             10
         )
@@ -31,7 +32,7 @@ class FeedbackLinearizationController(Node):
         # Subscripción a la pose localizada (en vez de odometría)
         self.pose_sub = self.create_subscription(
             PoseStamped,
-            '/odom/localization_pose',
+            'odom/localization_pose',
             self.pose_callback,
             10
         )
@@ -39,16 +40,19 @@ class FeedbackLinearizationController(Node):
         # Subscripción a la velocidad deseada
         self.cmd_desired_sub = self.create_subscription(
             Twist,
-            '/cmd_vel/desired',
+            'cmd_vel/desired',
             self.cmd_desired_callback,
             10
         )
 
         # Publicador de velocidad
-        self.cmd_pub = self.create_publisher(Twist, '/cmd_vel/linearization', 10)
+        self.cmd_pub = self.create_publisher(Twist, 'cmd_vel/linearization', 10)
 
         # Publicador para visualizar el objetivo en RViz
-        self.marker_pub = self.create_publisher(Marker, '/visualization_marker', 10)
+        self.marker_pub = self.create_publisher(Marker, 'visualization_marker', 10)
+
+        # Publicador de distancia al objetivo
+        self.distance_pub = self.create_publisher(Float32, 'distance_to_goal', 10)
 
         # Temporizador para actualización periódica
         self.timer = self.create_timer(self.dt, self.update)
@@ -67,7 +71,7 @@ class FeedbackLinearizationController(Node):
         """Publica info solo si ha pasado al menos 0.5s desde el último info."""
         now = self.get_clock().now()
         if (now - self._last_info_time).nanoseconds * 1e-9 > 0.5:
-            self.get_logger().info(msg)
+            print(msg)
             self._last_info_time = now
 
     def goal_callback(self, msg: PoseStamped):
@@ -140,7 +144,9 @@ class FeedbackLinearizationController(Node):
         e = np.array([x, y]) - self.qd
 
         # Publicar la distancia al objetivo solo cada 0.5 segundos
-        self.info_throttled(f"Distancia al objetivo: {np.linalg.norm(e):.2f}")
+        distance = float(np.linalg.norm(e))
+        self.info_throttled(f"Distancia al objetivo: {distance:.2f}")
+        self.distance_pub.publish(Float32(data=distance))
 
         c, s = np.cos(theta), np.sin(theta)
         D = np.array([

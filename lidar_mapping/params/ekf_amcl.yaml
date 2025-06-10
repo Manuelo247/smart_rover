@@ -1,0 +1,49 @@
+ekf_filter_node:
+  ros__parameters:
+    use_sim_time: false
+
+    frequency: 30.0
+    sensor_timeout: 0.1
+    two_d_mode: true
+    transform_time_offset: 0.0
+    transform_timeout: 0.0
+    print_diagnostics: true
+    debug: false
+    debug_out_file: /path/to/debug/file.txt
+    publish_tf: false     # 🚫 Esto evita que publique el transform
+    publish_acceleration: false
+    reset_on_time_jump: true
+
+    odom_frame: odom              # Frame interno de referencia
+    base_link_frame: base_footprint
+    world_frame: map              # El EKF usará esto internamente
+
+    odom0: /odom
+    odom0_config: [true,  true,  false,
+                   false, false, true,
+                   true,  true,  false,
+                   false, false, true,
+                   false, false, false]
+    odom0_differential: false
+    odom0_relative: false
+    odom0_queue_size: 10
+    odom0_pose_rejection_threshold: 5.0
+    odom0_twist_rejection_threshold: 1.0
+
+    amcl0: /amcl_pose
+    amcl0_config: [true,  true,  false,
+                   false, false, true,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    amcl0_differential: false
+    amcl0_relative: false
+    amcl0_queue_size: 10
+    amcl0_pose_rejection_threshold: 5.0
+    amcl0_twist_rejection_threshold: 1.0
+
+    process_noise_covariance: [0.05, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0, 0.05, 0.0, 0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0]

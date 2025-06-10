@@ -8,9 +8,9 @@ class PathFollower(Node):
     def __init__(self):
         super().__init__('path_follower')
         # Suscripción directa al path planeado
-        self.path_sub = self.create_subscription(Path, '/planning/planned_path', self.path_callback, 10)
-        self.pose_sub = self.create_subscription(PoseStamped, '/odom/localization_pose', self.pose_callback, 10)
-        self.goal_pub = self.create_publisher(PoseStamped, '/goal_pose/local', 10)
+        self.path_sub = self.create_subscription(Path, 'planning/planned_path', self.path_callback, 10)
+        self.pose_sub = self.create_subscription(PoseStamped, 'odom/localization_pose', self.pose_callback, 10)
+        self.goal_pub = self.create_publisher(PoseStamped, 'goal_pose/local', 10)
         self.path = []
         self.current_idx = 0
         self.threshold = 0.15  # distancia para cambiar al siguiente punto

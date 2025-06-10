@@ -36,6 +36,7 @@ setup(
             'switch_controller = smart_rover.switch_controller:main',
             'safety = smart_rover.4nodo_seguridad:main',
             'transform_localization = smart_rover.odom_with_localization:main',
+            'server_client = smart_rover.server_client:main',
         ],
     },
 )
