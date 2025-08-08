@@ -7,13 +7,21 @@ Panels:
         - /Global Options1
         - /TF1/Frames1
         - /TF1/Tree1
+        - /Lidar1
+        - /Bumper Hit1
+        - /Map1
         - /Map1/Topic1
+        - /Inflated map1
+        - /Amcl Particle Swarm1
+        - /Global Planner1
         - /Global Planner1/Global Costmap1
         - /Paths1
+        - /Paths1/Global path1
         - /Poses1
         - /Poses1/Initial pose1
         - /Poses1/Global pose1
         - /Poses1/Local pose1
+        - /FL objective1
       Splitter Ratio: 0.5833333134651184
     Tree Height: 326
   - Class: rviz_common/Selection
@@ -66,52 +74,11 @@ Visualization Manager:
         Value: /robot2/robot_description
       Enabled: true
       Links:
-        All Links Enabled:
-          {}
+        All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_back_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_front_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        lidar_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_back_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_front_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
       Mass Properties:
         Inertia: false
         Mass: false
@@ -130,6 +97,16 @@ Visualization Manager:
         base_link:
           Value: true
         camera2_link:
+          Value: true
+        camera_accel_frame:
+          Value: true
+        camera_accel_optical_frame:
+          Value: true
+        camera_gyro_frame:
+          Value: true
+        camera_gyro_optical_frame:
+          Value: true
+        camera_imu_frame:
           Value: true
         camera_link:
           Value: true
@@ -162,19 +139,26 @@ Visualization Manager:
                 camera2_link:
                   {}
                 camera_link:
-                  {}
+                  camera_accel_frame:
+                    camera_accel_optical_frame:
+                      {}
+                  camera_gyro_frame:
+                    camera_gyro_optical_frame:
+                      {}
+                    camera_imu_frame:
+                      {}
                 imu_link:
+                  {}
+                left_back_wheel:
+                  {}
+                left_front_wheel:
                   {}
                 lidar_link:
                   {}
-              left_back_wheel:
-                {}
-              left_front_wheel:
-                {}
-              right_back_wheel:
-                {}
-              right_front_wheel:
-                {}
+                right_back_wheel:
+                  {}
+                right_front_wheel:
+                  {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -192,9 +176,9 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 0
+      Max Intensity: 255
       Min Color: 0; 0; 0
-      Min Intensity: 0
+      Min Intensity: 2
       Name: Lidar
       Position Transformer: XYZ
       Selectable: true
@@ -207,7 +191,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
-        Value: /robot2/scan
+        Value: /scan
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -241,7 +225,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
-        Value: /robot2/mobile_base/sensors/bumper_pointcloud
+        Value: /mobile_base/sensors/bumper_pointcloud
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -257,13 +241,13 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /robot2/map
+        Value: /map
       Update Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /robot2/map_updates
+        Value: /map_updates
       Use Timestamp: false
       Value: true
     - Alpha: 0.699999988079071
@@ -278,13 +262,13 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /robot2/planning/inflated_map
+        Value: /planning/inflated_map
       Update Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /robot2/planning/inflated_map_updates
+        Value: /planning/inflated_map_updates
       Use Timestamp: false
       Value: true
     - Alpha: 1
@@ -301,7 +285,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
-        Value: /robot2/particle_cloud
+        Value: /particle_cloud
       Value: true
     - Class: rviz_common/Group
       Displays:
@@ -628,7 +612,7 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /robot2/planning/planned_path
+            Value: /planning/planned_path
           Value: true
         - Alpha: 1
           Buffer Length: 1
@@ -715,7 +699,7 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /robot2/initialpose
+            Value: /initialpose
           Value: true
         - Alpha: 1
           Axes Length: 1
@@ -735,7 +719,7 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /robot2/goal_pose/global
+            Value: /goal_pose/global
           Value: true
         - Alpha: 1
           Axes Length: 1
@@ -755,7 +739,7 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /robot2/goal_pose/local
+            Value: /goal_pose/local
           Value: true
         - Angle Tolerance: 0.10000000149011612
           Class: rviz_default_plugins/Odometry
@@ -802,14 +786,14 @@ Visualization Manager:
       Enabled: true
       Name: FL objective
       Namespaces:
-        goal: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /robot2/visualization_marker
+        Value: /visualization_marker
       Value: true
   Enabled: true
   Global Options:
@@ -832,7 +816,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /robot2/initialpose
+        Value: /initialpose
     - Class: rviz_default_plugins/PublishPoint
       Single click: true
       Topic:
@@ -848,14 +832,14 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /robot2/goal_pose/global
+        Value: /goal_pose/global
   Transformation:
     Current:
       Class: rviz_default_plugins/TF
   Value: true
   Views:
     Current:
-      Angle: -6.29999303817749
+      Angle: -6.28999137878418
       Class: rviz_default_plugins/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -865,11 +849,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 176.6818389892578
+      Scale: 88.0256118774414
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 2.0288729667663574
-      Y: 0.9995620846748352
+      X: 0.5087852478027344
+      Y: 0.2664763629436493
     Saved: ~
 Window Geometry:
   Displays:

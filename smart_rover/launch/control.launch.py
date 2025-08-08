@@ -12,7 +12,7 @@ def generate_launch_description():
             description='Namespace para los nodos'
         ),
         GroupAction([
-            PushRosNamespace(namespace),
+            # PushRosNamespace(namespace),
             Node(
                 package='smart_rover',
                 executable='switch_controller',

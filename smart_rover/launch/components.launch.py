@@ -28,12 +28,13 @@ def generate_launch_description():
             description='Namespace para los nodos'
         ),
         GroupAction([
-            PushRosNamespace(namespace),
+            # PushRosNamespace(namespace),  # <--- comenta o elimina esta línea
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(yahboomcar_launch)
             ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(lidar_launch)
             ),
+            # Agrega aquí más nodos o launches y todos estarán bajo el namespace
         ])
     ])

@@ -27,7 +27,7 @@ def generate_launch_description():
             description='Namespace para los nodos'
         ),
         GroupAction([
-            PushRosNamespace(namespace),
+            # PushRosNamespace(namespace),
             Node(
                 package='tf2_ros',
                 executable='static_transform_publisher',
